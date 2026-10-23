@@ -15,6 +15,16 @@ public class OrdersController : ControllerBase
     public OrdersController(AppDbContext db, IWebHostEnvironment env)
     { _db = db; _env = env; }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var orders = await _db.Orders
+            .Where(o => o.Status != "Completed" && o.Status != "Cancelled")
+            .OrderByDescending(o => o.CreatedAt)
+            .ToListAsync();
+        return Ok(orders);
+    }
+
     [HttpPost]
     public async Task<IActionResult> Create(CreateOrderDto dto)
     {
@@ -37,8 +47,14 @@ public class OrdersController : ControllerBase
             foreach (var item in dto.Items)
             {
                 var drink = await _db.Drinks.FindAsync(item.DrinkId);
-                if (drink == null || !drink.IsAvailable)
-                    return BadRequest(new { error = $"Món {item.DrinkId} không khả dụng" });
+                if (drink == null)
+                    return BadRequest(new { error = $"Không tìm thấy món #{item.DrinkId}" });
+                if (!drink.IsAvailable)
+                    return BadRequest(new
+                    {
+                        code = "DRINK_OUT_OF_STOCK",
+                        error = $"Rất tiếc, món \"{drink.Name}\" hiện đã tạm hết hàng nên quán chưa thể tiếp nhận đơn này. Vui lòng quay lại giỏ hàng, bỏ món này hoặc chọn đồ uống khác rồi thử đặt hàng lại. Giỏ hàng của bạn vẫn được giữ nguyên."
+                    });
                 if (item.Quantity <= 0)
                     return BadRequest(new { error = "Số lượng phải > 0" });
 

@@ -10,6 +10,22 @@ class CartScreen extends StatefulWidget {
 
 class _CartScreenState extends State<CartScreen> {
   @override
+  void initState() {
+    super.initState();
+    CartStore.addListener(_onCartChanged);
+  }
+
+  @override
+  void dispose() {
+    CartStore.removeListener(_onCartChanged);
+    super.dispose();
+  }
+
+  void _onCartChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final items = CartStore.items;
     return Scaffold(

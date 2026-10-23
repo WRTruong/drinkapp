@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:drink_app/services/api_service.dart';
 import 'package:drink_app/widgets/cart_store.dart';
-import 'package:drink_app/screens/order_status_screen.dart';
+import 'package:drink_app/widgets/order_tracker.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -56,18 +56,79 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       CartStore.clear();
       EasyLoading.dismiss();
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OrderStatusScreen(
-            orderId: res.id,
-            orderCode: res.orderCode,
-          ),
-        ),
-      );
+      OrderTracker.setOrder(res.id, res.orderCode);
+      Navigator.popUntil(context, (route) => route.isFirst);
+      EasyLoading.showSuccess('Đặt hàng thành công!');
+    } on ApiException catch (e) {
+      EasyLoading.dismiss();
+      if (e.isOutOfStock) {
+        await _showOutOfStockMessage(e);
+      } else {
+        EasyLoading.showError('Đặt hàng chưa thành công: ${e.message}');
+      }
     } catch (e) {
-      EasyLoading.showError('Đặt hàng thất bại: $e');
+      final message = e.toString().replaceFirst('Exception: ', '');
+      EasyLoading.showError('Đặt hàng thất bại: $message');
     }
+  }
+
+  Future<void> _showOutOfStockMessage(ApiException error) async {
+    var message =
+        'Rất tiếc, một hoặc nhiều món trong giỏ hàng hiện không còn khả dụng. '
+        'Quán chưa thể tiếp nhận đơn hàng này. Giỏ hàng của bạn vẫn được giữ nguyên; '
+        'vui lòng quay lại giỏ, bỏ món đã hết hoặc chọn món khác rồi thử lại.';
+
+    try {
+      final latestDrinks = await _api.getDrinks();
+      final unavailableIds = latestDrinks
+          .where((drink) => !drink.isAvailable)
+          .map((drink) => drink.id)
+          .toSet();
+      final unavailableNames = CartStore.items
+          .where((item) => unavailableIds.contains(item.drink.id))
+          .map((item) => item.drink.name)
+          .toSet()
+          .toList();
+
+      if (unavailableNames.isNotEmpty) {
+        message =
+            'Rất tiếc, ${unavailableNames.map((name) => '“$name”').join(', ')} '
+            'hiện đã tạm hết hàng nên quán chưa thể tiếp nhận đơn này. '
+            'Giỏ hàng của bạn vẫn được giữ nguyên. Vui lòng quay lại giỏ hàng, '
+            'bỏ món hết hàng hoặc chọn đồ uống khác rồi thử đặt hàng lại.';
+      } else {
+        message = '${error.message}\n\n'
+            'Quán chưa thể tiếp nhận đơn này. Giỏ hàng của bạn vẫn được giữ nguyên; '
+            'vui lòng kiểm tra lại giỏ hoặc chọn món khác rồi thử lại.';
+      }
+    } catch (_) {
+      message = '${error.message}\n\n'
+          'Quán chưa thể tiếp nhận đơn này. Giỏ hàng của bạn vẫn được giữ nguyên; '
+          'vui lòng quay lại giỏ hàng, kiểm tra tình trạng món và thử lại.';
+    }
+
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.info_outline, color: Colors.orange),
+        title: const Text('Món trong giỏ vừa hết hàng'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Đóng'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              Navigator.pop(context);
+            },
+            child: const Text('Quay lại giỏ hàng'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

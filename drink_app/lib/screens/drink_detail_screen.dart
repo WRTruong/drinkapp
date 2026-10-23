@@ -92,7 +92,7 @@ class _DrinkDetailScreenState extends State<DrinkDetailScreen> {
               ),
               ElevatedButton.icon(
                 onPressed: () {
-                  CartStore.items.add(CartItem(
+                  CartStore.add(CartItem(
                     drink: d,
                     quantity: _qty,
                     size: _size,

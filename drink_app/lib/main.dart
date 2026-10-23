@@ -4,6 +4,8 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:drink_app/services/notification_service.dart';
 import 'package:drink_app/screens/menu_screen.dart';
 import 'package:drink_app/screens/cart_screen.dart';
+import 'package:drink_app/screens/order_status_screen.dart';
+import 'package:drink_app/widgets/order_tracker.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -40,14 +42,25 @@ class _MainTabsState extends State<MainTabs> {
 
   @override
   Widget build(BuildContext context) {
-    final screens = [
-      const MenuScreen(),
-      const CartScreen(),
-      const _EmptyOrderScreen(),
-    ];
-
     return Scaffold(
-      body: screens[_index], 
+      body: IndexedStack(
+        index: _index,
+        children: [
+          const MenuScreen(),
+          const CartScreen(),
+          ValueListenableBuilder<TrackedOrder?>(
+            valueListenable: OrderTracker.currentOrder,
+            builder: (context, order, _) {
+              if (order == null) return const _EmptyOrderScreen();
+              return OrderStatusScreen(
+                key: ValueKey(order.id),
+                orderId: order.id,
+                orderCode: order.code,
+              );
+            },
+          ),
+        ],
+      ),
       bottomNavigationBar: ConvexAppBar(
         style: TabStyle.react,
         backgroundColor: Colors.brown,

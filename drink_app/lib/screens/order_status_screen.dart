@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:drink_app/services/api_service.dart';
 import 'package:drink_app/services/notification_service.dart';
+import 'package:drink_app/widgets/order_tracker.dart';
 
 class OrderStatusScreen extends StatefulWidget {
   final int orderId;
@@ -122,6 +123,14 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                   child: Text(
                     'Lỗi kết nối, đang thử lại...',
                     style: TextStyle(color: Colors.red[400], fontSize: 12),
+                  ),
+                ),
+              if (_status == 'Completed' || _status == 'Cancelled')
+                const Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: ElevatedButton(
+                    onPressed: OrderTracker.clear,
+                    child: Text('Đặt đơn mới'),
                   ),
                 ),
             ],

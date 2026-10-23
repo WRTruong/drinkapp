@@ -13,5 +13,17 @@ public class DrinksController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetAll() =>
-        Ok(await _db.Drinks.Where(d => d.IsAvailable).ToListAsync());
+        Ok(await _db.Drinks.ToListAsync());
+
+    [HttpPatch("{id}/toggle-stock")]
+    public async Task<IActionResult> ToggleStock(int id)
+    {
+        var drink = await _db.Drinks.FindAsync(id);
+        if (drink == null) return NotFound();
+
+        drink.IsAvailable = !drink.IsAvailable;
+        await _db.SaveChangesAsync();
+
+        return Ok(new { drink.Id, drink.Name, drink.IsAvailable });
+    }
 }
