@@ -338,3 +338,4 @@ C:\Users\truon\Documents\LTTBDD\drinkapp\DrinkApi\obj\Debug\net10.0\refint\Drink
 C:\Users\truon\Documents\LTTBDD\drinkapp\DrinkApi\obj\Debug\net10.0\DrinkApi.pdb
 C:\Users\truon\Documents\LTTBDD\drinkapp\DrinkApi\obj\Debug\net10.0\DrinkApi.genruntimeconfig.cache
 C:\Users\truon\Documents\LTTBDD\drinkapp\DrinkApi\obj\Debug\net10.0\ref\DrinkApi.dll
+C:\Users\truon\Documents\LTTBDD\drinkapp\DrinkApi\obj\Debug\net10.0\DrinkApi.sourcelink.json

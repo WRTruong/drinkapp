@@ -102,7 +102,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
               const SizedBox(height: 8),
               Chip(
                 label: Text(_status),
-                backgroundColor: _statusColor().withOpacity(0.15),
+                backgroundColor: _statusColor().withValues(alpha: 0.15),
                 labelStyle: TextStyle(
                     color: _statusColor(), fontWeight: FontWeight.bold),
               ),
