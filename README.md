@@ -1,29 +1,18 @@
-# 🧋 Ứng dụng Đặt đồ uống
+# Ứng dụng đặt đồ uống
 
-Ứng dụng đặt đồ uống gồm ứng dụng di động Flutter, REST API xây dựng bằng ASP.NET Core và cơ sở dữ liệu SQL Server. Người dùng có thể xem menu, tuỳ chỉnh đồ uống, tạo đơn hàng và theo dõi trạng thái đơn.
-
-## 📸 Ảnh chụp màn hình
-
-> Thay các đường dẫn bên dưới bằng ảnh chụp màn hình của dự án. Có thể lưu ảnh trong thư mục `docs/screenshots/`.
-
-| Menu đồ uống | Chi tiết đồ uống | Giỏ hàng |
-|---|---|---|
-| ![Menu đồ uống](docs/screenshots/menu.png) | ![Chi tiết đồ uống](docs/screenshots/drink-detail.png) | ![Giỏ hàng](docs/screenshots/cart.png) |
-
-| Xác nhận đặt hàng | Trạng thái đơn hàng |
-|---|---|
-| ![Xác nhận đặt hàng](docs/screenshots/checkout.png) | ![Trạng thái đơn hàng](docs/screenshots/order-status.png) |
+Ứng dụng di động Flutter cho phép khách xem menu, tuỳ chỉnh đồ uống, đặt hàng và theo dõi trạng thái. Backend dùng ASP.NET Core Web API và SQL Server; khu vực nhân viên dùng để quản lý tồn kho và xử lý đơn.
 
 ## ✨ Tính năng chính
 
-- Xem danh sách đồ uống còn phục vụ, giá và mô tả.
-- Tuỳ chỉnh size, lượng đường, lượng đá và số lượng. Giá size S bằng giá gốc; M cộng 5.000đ và L cộng 10.000đ.
+- Xem menu, mô tả, tình trạng còn hàng và giá khởi điểm.
+- Tuỳ chỉnh size, lượng đường, lượng đá và số lượng. Giá size S bằng giá gốc; size M cộng 5.000đ; size L cộng 10.000đ. App hiển thị giá theo size đã chọn; API tính lại giá khi tạo đơn.
 - Thêm món vào giỏ hàng, cập nhật số lượng hoặc xoá món.
 - Tạo đơn hàng với tên người nhận, số điện thoại và ghi chú.
-- Thanh toán trước qua cổng thanh toán; đơn chưa trả tiền trong 10 phút sẽ tự huỷ để tránh đơn ảo.
+- Xác nhận thanh toán demo trong app. Đây là thao tác giả lập, không thu tiền thật; đơn chưa xác nhận trong 10 phút sẽ tự huỷ.
 - Theo dõi trạng thái đơn hàng; ứng dụng tự làm mới thông tin mỗi 15 giây.
-- Xem lại lịch sử các đơn đã đặt (lưu trên thiết bị, không cần đăng nhập).
+- Xem lại tối đa 20 đơn gần nhất được lưu trên thiết bị (không cần đăng nhập).
 - Nhận thông báo trên thiết bị về trạng thái đơn hàng.
+- Nhân viên có thể cập nhật tình trạng món và trạng thái pha chế của đơn đã thanh toán.
 
 ## 🧰 Công nghệ sử dụng
 
@@ -42,7 +31,7 @@
 
 ## 🚀 Hướng dẫn cài đặt
 
-Thực hiện lần lượt theo 3 bước sau. Các lệnh Flutter cần chạy từ thư mục `drink_app`, còn lệnh backend chạy từ `DrinkApi`.
+Thực hiện lần lượt các bước dưới đây. Các lệnh Flutter cần chạy từ thư mục `drink_app`, còn lệnh backend chạy từ `DrinkApi`.
 
 ### 1. Database
 
@@ -97,51 +86,41 @@ Các API quản trị yêu cầu header `X-Admin-Key` khớp với giá trị `A
 - Trong app: long-press tiêu đề **Menu đồ uống** để mở khu vực nhân viên và nhập mã. Mã chỉ giữ trong bộ nhớ của phiên chạy hiện tại, không lưu xuống thiết bị.
 - Thử trong Swagger: bấm **Authorize**, nhập mã, rồi gọi các API quản trị.
 
-### 5. Lịch sử đơn khi chưa có đăng nhập
+### 5. Lịch sử đơn
 
-Đồ án chưa có tài khoản khách hàng, nên đơn được lưu theo hai lớp:
+Ứng dụng chưa có tài khoản khách hàng:
 
-- **Server là nguồn chính thức:** mỗi lần bấm *Xác nhận đặt hàng*, API tạo bản ghi trong `Orders`/`OrderItems` với mã đơn ngẫu nhiên (`ORD-...`), trạng thái `Pending`, tổng tiền và trạng thái thanh toán. Đơn nằm trong database vĩnh viễn, không phụ thuộc app; nhưng quán chỉ nhận đơn sau khi khách thanh toán (xem mục [Thanh toán trước](#6-thanh-toán-trước-và-chống-bom-đơn)).
-- **Thiết bị dùng để khách tự xem lại:** app lưu tối đa 20 đơn gần nhất vào bộ nhớ máy (`shared_preferences`), gồm mã đơn, tổng tiền, số món, thời điểm và trạng thái gần nhất. Tab **Đơn** hiển thị danh sách này; mở một đơn sẽ lấy trạng thái mới nhất từ API rồi cập nhật lại danh sách, kéo xuống để làm mới tất cả.
+- Backend lưu dữ liệu đơn trong SQL Server. Mỗi đơn có mã `ORD-...`, chi tiết món, giá đã tính theo size, tổng tiền và trạng thái.
+- App lưu tối đa 20 đơn gần nhất trên thiết bị bằng `shared_preferences`. Khi mở một đơn hoặc kéo xuống làm mới, app lấy trạng thái mới nhất từ API.
 
-Giới hạn: gỡ app hoặc xoá dữ liệu ứng dụng thì mất danh sách trên máy (đơn vẫn còn trên server, xem ở màn quản trị hoặc bảng `Orders`). Các đơn đặt trước khi có tính năng này cũng không xuất hiện trong danh sách máy.
+Xoá dữ liệu hoặc gỡ ứng dụng sẽ xoá danh sách đơn lưu trên thiết bị; dữ liệu đơn trên server không bị ảnh hưởng.
 
-### 6. Thanh toán trước và chống "bom" đơn
+### 6. Thanh toán demo
 
-Vì app để khách đặt trước, quán chỉ nhận đơn khi khách đã trả tiền. Nếu cho trả khi nhận hàng, một người có thể tạo nhiều đơn ảo trong lúc quán đã pha chế xong.
+1. Khi khách đặt hàng, API tạo đơn ở trạng thái chưa thanh toán và bắt đầu thời gian giữ đơn (mặc định 10 phút, cấu hình bằng `Payment:WindowMinutes`).
+2. Khách mở chi tiết đơn và chọn **Xác nhận thanh toán demo**, sau đó xác nhận trong hộp thoại.
+3. App gọi `POST /api/orders/{id}/demo-payment/confirm`; API cập nhật trạng thái thanh toán, rồi app tải lại chi tiết đơn.
+4. Chỉ đơn đã xác nhận mới xuất hiện trong hàng chờ nhân viên. Đơn chưa thanh toán quá hạn sẽ bị huỷ.
 
-Quy trình:
-
-1. Khách bấm **Đặt hàng (demo)**: API tạo đơn với `PaymentStatus = Unpaid` và `PaymentExpiresAt = now + 10 phút` (đổi bằng `Payment:WindowMinutes` trong `appsettings.json`).
-2. Ở màn hình chi tiết đơn, khách bấm **Xác nhận thanh toán demo** và xác nhận trong hộp thoại. Thao tác này chỉ mô phỏng thanh toán, không chuyển hay thu tiền thật.
-3. App gọi `POST /api/orders/{id}/demo-payment/confirm`; server đặt `PaymentStatus = Paid`, `PaidAt = now`, sau đó app tải lại trạng thái đơn.
-4. App tự kiểm tra trạng thái mỗi 15 giây, kèm đồng hồ đếm ngược thời gian giữ đơn.
-5. Quá hạn mà chưa trả tiền: đơn tự chuyển `Cancelled` (kiểm tra ở mọi truy vấn đơn/danh sách), không vào hàng chờ pha chế, khách phải đặt lại.
-6. `GET /api/orders` của màn nhân viên **chỉ trả đơn `Paid`**, nên đơn chưa trả tiền không chiếm chỗ trong hàng chờ.
-
-Có thể dùng trang cổng giả lập `/pay/mock/{mã}` để mô phỏng luồng chuyển hướng riêng; không cần đăng ký merchant.
-
-Muốn dùng cổng thật (VNPay sandbox): đăng ký tại `https://sandbox.vnpayment.vn/devreg` để nhận `vnp_TmnCode` và `vnp_HashSecret`, rồi thay luồng demo bằng URL có chữ ký HMAC-SHA512 (tham số sắp xếp tăng dần, `vnp_Amount` nhân 100), thêm endpoint nhận Return URL/IPN có kiểm tra chữ ký để đặt `PaymentStatus = Paid` và cập nhật app để mở cổng rồi tải lại trạng thái đơn. Không dùng endpoint xác nhận demo cho thanh toán thật.
-
-Lưu ý: xác nhận thanh toán trong app và trang giả lập đều không có chữ ký/xác thực; chỉ dùng cho demo, không triển khai để thu tiền thật.
+**Không có giao dịch tiền thật.** Endpoint xác nhận demo không có xác thực cổng thanh toán và chỉ phù hợp chạy đồ án/demo; không dùng trong môi trường thu tiền thật. Backend cũng có luồng cổng giả lập riêng (`POST /api/orders/{id}/pay` và `/pay/mock/...`) để thử chuyển hướng.
 
 ## 📡 Danh sách API
 
-Base URL mặc định: `http://localhost:5000` (khi gọi từ máy phát triển). Các endpoint bên dưới có tiền tố `/api`, trừ các route `/pay/mock/...` của trang thanh toán giả lập.
+Base URL mặc định: `http://localhost:5000` cho backend và `http://10.0.2.2:5000` cho Android Emulator. Các endpoint API có tiền tố `/api`.
 
 | Phương thức | Endpoint | Mô tả |
 |---|---|---|
-| `GET` | `/drinks` | Lấy toàn bộ đồ uống, bao gồm cả món hết hàng. |
-| `PATCH` | `/drinks/{id}/toggle-stock` 🔒 | Đảo trạng thái còn hàng/hết hàng cho đồ uống. |
-| `GET` | `/orders` 🔒 | Lấy các đơn **đã thanh toán**, chưa hoàn thành hoặc chưa bị huỷ, mới tạo trước, kèm các món trong đơn. |
-| `POST` | `/orders` | Tạo đơn hàng mới (trạng thái chờ thanh toán, giữ đơn 10 phút). |
-| `GET` | `/orders/{id}` | Lấy thông tin đơn hàng, các món và trạng thái thanh toán. |
-| `POST` | `/orders/{id}/pay` | Tạo giao dịch thanh toán, trả `paymentUrl` và hạn giữ đơn mới. |
-| `POST` | `/orders/{id}/demo-payment/confirm` | Xác nhận thanh toán giả lập trong app (không thu tiền thật). |
-| `POST` | `/orders/{id}/cancel` | Khách tự huỷ đơn khi chưa thanh toán. |
-| `PATCH` | `/orders/{id}/status` 🔒 | Cập nhật trạng thái đơn hàng. |
-| `GET` | `/pay/mock/{mã}` | Trang cổng thanh toán giả lập (không có tiền tố `/api`). |
-| `GET` | `/pay/mock/{mã}/confirm?ok=1` | Cổng giả lập báo kết quả thanh toán về server (`ok=0` là huỷ giao dịch). |
+| `GET` | `/api/drinks` | Lấy menu, gồm cả món đang hết hàng. |
+| `PATCH` | `/api/drinks/{id}/toggle-stock` 🔒 | Đổi tình trạng còn hàng/hết hàng. |
+| `GET` | `/api/orders` 🔒 | Lấy đơn đã thanh toán, chưa hoàn tất và chưa bị huỷ. |
+| `POST` | `/api/orders` | Tạo đơn và tính giá theo size ở phía server. |
+| `GET` | `/api/orders/{id}` | Lấy chi tiết và trạng thái đơn. |
+| `POST` | `/api/orders/{id}/demo-payment/confirm` | Xác nhận thanh toán demo; không thu tiền thật. |
+| `POST` | `/api/orders/{id}/pay` | Tạo phiên cho luồng cổng giả lập riêng. |
+| `POST` | `/api/orders/{id}/cancel` | Khách huỷ đơn chưa thanh toán. |
+| `PATCH` | `/api/orders/{id}/status` 🔒 | Nhân viên cập nhật trạng thái pha chế. |
+| `GET` | `/pay/mock/{paymentRef}` | Trang cổng giả lập (không có tiền thật). |
+| `GET` | `/pay/mock/{paymentRef}/confirm?ok=1` | Mô phỏng kết quả thanh toán cho luồng cổng giả lập. |
 
 🔒 = yêu cầu header `X-Admin-Key` (xem mục [Phân quyền nhân viên](#4-phân-quyền-nhân-viên)).
 
@@ -165,8 +144,3 @@ Base URL mặc định: `http://localhost:5000` (khi gọi từ máy phát tri�
 ```
 
 Các trạng thái đơn hàng được hỗ trợ: `Pending`, `Preparing`, `Ready`, `Completed`, `Cancelled`.
-
-## 👤 Tác giả
-
-- **Tên:** `[Điền tên tác giả]`
-- **Email/GitHub:** `[Điền thông tin liên hệ]`
