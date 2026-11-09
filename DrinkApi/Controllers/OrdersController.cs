@@ -15,6 +15,12 @@ public class OrdersController : ControllerBase
     public OrdersController(AppDbContext db, IWebHostEnvironment env)
     { _db = db; _env = env; }
 
+    // Mã đơn gồm thời điểm tạo tới giây và 4 ký tự ngẫu nhiên: hai đơn trong
+    // cùng một giây vẫn có mã khác nhau, không vi phạm unique index OrderCode.
+    private static string NewOrderCode() =>
+        "ORD-" + DateTime.UtcNow.ToString("yyMMddHHmmss") +
+        Guid.NewGuid().ToString("N")[..4].ToUpperInvariant();
+
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -33,12 +39,20 @@ public class OrdersController : ControllerBase
             dto.Items == null || dto.Items.Count == 0)
             return BadRequest(new { error = "Thiếu thông tin bắt buộc" });
 
+        // Kiểm tra độ dài theo schema để trả 400 rõ ràng thay vì lỗi 500 khi lưu.
+        if (dto.CustomerName.Length > 100)
+            return BadRequest(new { error = "Tên người nhận tối đa 100 ký tự" });
+        if (dto.Phone.Length > 20)
+            return BadRequest(new { error = "Số điện thoại tối đa 20 ký tự" });
+        if (dto.Note is { Length: > 255 })
+            return BadRequest(new { error = "Ghi chú tối đa 255 ký tự" });
+
         using var tx = await _db.Database.BeginTransactionAsync();
         try
         {
             var order = new Order
             {
-                OrderCode = "ORD-" + DateTime.UtcNow.ToString("yyMMddHHmmss"),
+                OrderCode = NewOrderCode(),
                 CustomerName = dto.CustomerName,
                 Phone = dto.Phone,
                 Note = dto.Note
@@ -55,6 +69,10 @@ public class OrdersController : ControllerBase
                         code = "DRINK_OUT_OF_STOCK",
                         error = $"Rất tiếc, món \"{drink.Name}\" hiện đã tạm hết hàng nên quán chưa thể tiếp nhận đơn này. Vui lòng quay lại giỏ hàng, bỏ món này hoặc chọn đồ uống khác rồi thử đặt hàng lại. Giỏ hàng của bạn vẫn được giữ nguyên."
                     });
+                if (item.Size is { Length: > 10 } ||
+                    item.SugarLevel is { Length: > 10 } ||
+                    item.IceLevel is { Length: > 10 })
+                    return BadRequest(new { error = "Tuỳ chỉnh size/đường/đá không hợp lệ" });
                 if (item.Quantity <= 0)
                     return BadRequest(new { error = "Số lượng phải > 0" });
 
@@ -99,7 +117,11 @@ public class OrdersController : ControllerBase
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> UpdateStatus(int id, UpdateStatusDto dto)
     {
-        if (!_env.IsDevelopment()) return Forbid();
+        if (!_env.IsDevelopment())
+            return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                error = "Chỉ môi trường Development mới cho phép cập nhật trạng thái đơn."
+            });
         var allowed = new[] { "Pending", "Preparing", "Ready", "Completed", "Cancelled" };
         if (!allowed.Contains(dto.Status))
             return BadRequest(new { error = "Trạng thái không hợp lệ" });

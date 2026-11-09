@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DrinkApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+075d210c48e8884767874841ae48faa67994e0d9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fe3ad7da3fa443d8f77f556dad5026ea3aa896d9")]
 [assembly: System.Reflection.AssemblyProductAttribute("DrinkApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DrinkApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

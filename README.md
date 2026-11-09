@@ -50,7 +50,7 @@ Thực hiện lần lượt theo 3 bước sau. Các lệnh Flutter cần chạy
 
 ### 2. Backend
 
-1. Mở [`DrinkApi/appsettings.json`](DrinkApi/appsettings.json) và đổi `ConnectionStrings:Default` theo cấu hình SQL Server của bạn. Ví dụ:
+1. [`DrinkApi/appsettings.json`](DrinkApi/appsettings.json) chứa chuỗi kết nối mặc định `Server=localhost`. Nếu SQL Server của bạn là một instance khác (ví dụ `TRUONG\SQLEXPRESS`), đặt chuỗi thật trong `DrinkApi/appsettings.Development.json` — file cấu hình riêng cho máy phát triển, không nên commit. Ví dụ:
 
    ```json
    {
@@ -60,7 +60,7 @@ Thực hiện lần lượt theo 3 bước sau. Các lệnh Flutter cần chạy
    }
    ```
 
-   Thay `localhost` bằng tên server/instance tương ứng; đảm bảo database `DrinkDb` đã được tạo ở bước 1.
+   Đảm bảo database `DrinkDb` đã được tạo ở bước 1. Khi chạy `dotnet run`, profile `http` trong `launchSettings.json` đặt `ASPNETCORE_ENVIRONMENT=Development` nên `appsettings.Development.json` sẽ được nạp.
 2. Mở terminal tại thư mục `DrinkApi`, sau đó chạy:
 
    ```bash
@@ -72,13 +72,13 @@ Thực hiện lần lượt theo 3 bước sau. Các lệnh Flutter cần chạy
 
 ### 3. App
 
-1. Mở [`drink_app/lib/services/api_service.dart`](drink_app/lib/services/api_service.dart) và kiểm tra `baseUrl`. Mặc định:
+1. `baseUrl` mặc định là `http://10.0.2.2:5000`. Khi chạy trên thiết bị thật, không cần sửa code — truyền địa chỉ IP LAN của máy backend qua `--dart-define`:
 
-   ```dart
-   static const String baseUrl = 'http://10.0.2.2:5000';
+   ```bash
+   flutter run --dart-define=API_BASE_URL=http://192.168.1.10:5000
    ```
 
-   `10.0.2.2` là địa chỉ để **Android Emulator** truy cập máy chủ đang chạy trên máy phát triển. Khi chạy trên thiết bị thật, thay bằng địa chỉ IP nội bộ của máy tính; với iOS Simulator, web hoặc môi trường khác, thay bằng địa chỉ mà thiết bị đó có thể truy cập. Đảm bảo backend và thiết bị dùng chung mạng khi cần.
+   `10.0.2.2` là địa chỉ đặc biệt để **Android Emulator** truy cập loopback của máy phát triển. Với iOS Simulator, web hoặc thiết bị thật, dùng địa chỉ mà thiết bị đó truy cập được (ví dụ IP LAN `192.168.1.10`). Giá trị này được đọc trong [`drink_app/lib/services/api_service.dart`](drink_app/lib/services/api_service.dart). Đảm bảo backend và thiết bị dùng chung mạng.
 2. Mở terminal tại `drink_app`, tải dependencies và chạy ứng dụng:
 
    ```bash
