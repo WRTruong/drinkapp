@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:drink_app/services/api_service.dart';
 import 'package:drink_app/services/notification_service.dart';
 import 'package:drink_app/services/order_history_store.dart';
@@ -145,20 +144,38 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
     }
   }
 
-  Future<void> _openPayment() async {
+  Future<void> _confirmDemoPayment() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Thanh toán demo'),
+        content: Text(
+          'Xác nhận đã thanh toán ${_total.toStringAsFixed(0)} đ? '
+          'Đây chỉ là mô phỏng, không có tiền thật được chuyển.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Quay lại'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Xác nhận đã thanh toán'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
     setState(() => _paying = true);
     try {
-      final session = await _api.createPayment(widget.orderId);
-      final opened = await launchUrl(
-        Uri.parse(session.paymentUrl),
-        mode: LaunchMode.externalApplication,
-      );
-      if (!opened) EasyLoading.showError('Không mở được trang thanh toán');
+      await _api.confirmDemoPayment(widget.orderId);
+      await _fetch();
     } on ApiException catch (e) {
       EasyLoading.showError(e.message);
       await _fetch();
     } catch (e) {
-      EasyLoading.showError('Lỗi kết nối: $e');
+      EasyLoading.showError('Không xác nhận được thanh toán demo: $e');
     } finally {
       if (mounted) setState(() => _paying = false);
     }
@@ -323,8 +340,8 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           ),
           const SizedBox(height: 6),
           const Text(
-            'Quán chỉ nhận đơn sau khi thanh toán thành công. Đơn chưa trả tiền '
-            'sẽ tự huỷ khi hết thời gian giữ chỗ.',
+            'Thanh toán chỉ được mô phỏng, không trừ tiền thật. Xác nhận bên '
+            'dưới để cập nhật đơn thành đã thanh toán.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
@@ -332,7 +349,9 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
           SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
-              onPressed: _paying ? null : _openPayment,
+              onPressed: _paying || !_loaded || expired
+                  ? null
+                  : _confirmDemoPayment,
               icon: _paying
                   ? const SizedBox(
                       width: 16,
@@ -340,16 +359,7 @@ class _OrderStatusScreenState extends State<OrderStatusScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.payment),
-              label: const Text('Thanh toán ngay'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: _fetch,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Tôi đã thanh toán'),
+              label: const Text('Xác nhận thanh toán demo'),
             ),
           ),
           TextButton(

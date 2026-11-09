@@ -65,6 +65,40 @@ public class PaymentsController : ControllerBase
         </html>
         """, "text/html; charset=utf-8");
 
+    [HttpPost("/api/orders/{id:int}/demo-payment/confirm")]
+    public async Task<IActionResult> ConfirmDemoPayment(int id)
+    {
+        var order = await _db.Orders.FindAsync(id);
+        if (order == null) return NotFound();
+
+        if (order.PaymentStatus == "Paid")
+            return Ok(new { order.Id, order.Status, order.PaymentStatus });
+
+        if (order.Status == "Cancelled")
+            return BadRequest(new
+            {
+                code = "ORDER_CANCELLED",
+                error = "Đơn đã bị huỷ nên không thể xác nhận thanh toán demo."
+            });
+
+        if (IsExpired(order))
+        {
+            order.Status = "Cancelled";
+            await _db.SaveChangesAsync();
+            return BadRequest(new
+            {
+                code = "PAYMENT_EXPIRED",
+                error = "Đơn đã quá hạn và bị huỷ. Vui lòng đặt lại đơn mới."
+            });
+        }
+
+        order.PaymentStatus = "Paid";
+        order.PaidAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+
+        return Ok(new { order.Id, order.Status, order.PaymentStatus });
+    }
+
     [HttpGet("/pay/mock/{paymentRef}")]
     public async Task<IActionResult> MockGateway(string paymentRef)
     {
@@ -74,7 +108,7 @@ public class PaymentsController : ControllerBase
             return Html("Không tìm thấy giao dịch", """
                 <p><span class="badge err">Không hợp lệ</span></p>
                 <p>Mã giao dịch không tồn tại hoặc đã được dùng cho lần thanh toán khác.</p>
-                <p class="hint">Quay lại ứng dụng và bấm “Thanh toán ngay” để tạo giao dịch mới.</p>
+                <p class="hint">Quay lại ứng dụng để đặt lại đơn nếu cần.</p>
                 """);
 
         if (order.PaymentStatus == "Paid")

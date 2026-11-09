@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:drink_app/services/api_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:drink_app/widgets/cart_store.dart';
 import 'package:drink_app/services/order_history_store.dart';
 import 'package:drink_app/screens/order_status_screen.dart';
@@ -70,23 +69,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         createdAt: DateTime.now(),
       ));
 
-      // Đơn chỉ vào hàng chờ sau khi trả tiền, nên mở cổng thanh toán ngay.
-      String? paymentError;
-      try {
-        final session = await _api.createPayment(res.id);
-        final opened = await launchUrl(
-          Uri.parse(session.paymentUrl),
-          mode: LaunchMode.externalApplication,
-        );
-        if (!opened) {
-          paymentError = 'Không mở được trình duyệt thanh toán';
-        }
-      } on ApiException catch (e) {
-        paymentError = e.message;
-      } catch (e) {
-        paymentError = '$e';
-      }
-
       EasyLoading.dismiss();
       if (!mounted) return;
       Navigator.popUntil(context, (route) => route.isFirst);
@@ -99,9 +81,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ),
         ),
       );
-      if (paymentError != null) {
-        EasyLoading.showError('Chưa mở được thanh toán: $paymentError');
-      }
     } on ApiException catch (e) {
       EasyLoading.dismiss();
       if (e.isOutOfStock) {
@@ -256,9 +235,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'Đơn được giữ 10 phút. Sau khi thanh toán thành công, đơn mới '
-                  'vào hàng chờ pha chế của quán; quá hạn chưa trả tiền thì đơn '
-                  'tự huỷ.',
+                  'Đây là thanh toán demo, không trừ tiền thật. Đơn được giữ '
+                  '10 phút và chỉ vào hàng chờ sau khi bạn xác nhận thanh toán '
+                  'giả lập; quá hạn thì đơn tự huỷ.',
                   style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ),
@@ -272,7 +251,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: const Text('Đặt hàng và thanh toán'),
+              child: const Text('Đặt hàng (demo)'),
             ),
           ),
         ],

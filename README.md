@@ -112,18 +112,18 @@ Vì app để khách đặt trước, quán chỉ nhận đơn khi khách đã t
 
 Quy trình:
 
-1. Khách bấm **Đặt hàng và thanh toán**: API tạo đơn với `PaymentStatus = Unpaid` và `PaymentExpiresAt = now + 10 phút` (đổi bằng `Payment:WindowMinutes` trong `appsettings.json`).
-2. App gọi `POST /api/orders/{id}/pay` để lấy URL cổng thanh toán và mở bằng trình duyệt điện thoại.
-3. Khách xác nhận ở cổng; cổng gọi về server, server đặt `PaymentStatus = Paid`, `PaidAt = now`.
-4. App tự kiểm tra trạng thái mỗi 15 giây, có thêm nút **Tôi đã thanh toán** để cập nhật ngay, kèm đồng hồ đếm ngược thời gian giữ đơn.
+1. Khách bấm **Đặt hàng (demo)**: API tạo đơn với `PaymentStatus = Unpaid` và `PaymentExpiresAt = now + 10 phút` (đổi bằng `Payment:WindowMinutes` trong `appsettings.json`).
+2. Ở màn hình chi tiết đơn, khách bấm **Xác nhận thanh toán demo** và xác nhận trong hộp thoại. Thao tác này chỉ mô phỏng thanh toán, không chuyển hay thu tiền thật.
+3. App gọi `POST /api/orders/{id}/demo-payment/confirm`; server đặt `PaymentStatus = Paid`, `PaidAt = now`, sau đó app tải lại trạng thái đơn.
+4. App tự kiểm tra trạng thái mỗi 15 giây, kèm đồng hồ đếm ngược thời gian giữ đơn.
 5. Quá hạn mà chưa trả tiền: đơn tự chuyển `Cancelled` (kiểm tra ở mọi truy vấn đơn/danh sách), không vào hàng chờ pha chế, khách phải đặt lại.
 6. `GET /api/orders` của màn nhân viên **chỉ trả đơn `Paid`**, nên đơn chưa trả tiền không chiếm chỗ trong hàng chờ.
 
-Cổng thanh toán của bản demo là **giả lập** (`DrinkApi/Controllers/PaymentsController.cs`, trang `/pay/mock/{mã}`): không cần đăng ký merchant, chạy offline, mô phỏng đúng luồng chuyển hướng → xác nhận → cập nhật đơn. Bấm *Thanh toán thành công* trên trang đó để giả lập khách đã trả tiền.
+Có thể dùng trang cổng giả lập `/pay/mock/{mã}` để mô phỏng luồng chuyển hướng riêng; không cần đăng ký merchant.
 
-Muốn dùng cổng thật (VNPay sandbox): đăng ký tại `https://sandbox.vnpayment.vn/devreg` để nhận `vnp_TmnCode` và `vnp_HashSecret`, rồi thay lớp sinh URL trong `MockPaymentGateway` bằng URL có chữ ký HMAC-SHA512 (tham số sắp xếp tăng dần, `vnp_Amount` nhân 100) và thêm endpoint nhận Return URL/IPN có kiểm tra chữ ký để đặt `PaymentStatus = Paid`. App không phải sửa vì vẫn là "mở URL → hỏi lại trạng thái".
+Muốn dùng cổng thật (VNPay sandbox): đăng ký tại `https://sandbox.vnpayment.vn/devreg` để nhận `vnp_TmnCode` và `vnp_HashSecret`, rồi thay luồng demo bằng URL có chữ ký HMAC-SHA512 (tham số sắp xếp tăng dần, `vnp_Amount` nhân 100), thêm endpoint nhận Return URL/IPN có kiểm tra chữ ký để đặt `PaymentStatus = Paid` và cập nhật app để mở cổng rồi tải lại trạng thái đơn. Không dùng endpoint xác nhận demo cho thanh toán thật.
 
-Lưu ý: trang giả lập không có chữ ký/xác thực nên chỉ dùng cho demo, không dùng để thu tiền thật.
+Lưu ý: xác nhận thanh toán trong app và trang giả lập đều không có chữ ký/xác thực; chỉ dùng cho demo, không triển khai để thu tiền thật.
 
 ## 📡 Danh sách API
 
@@ -137,6 +137,7 @@ Base URL mặc định: `http://localhost:5000` (khi gọi từ máy phát tri�
 | `POST` | `/orders` | Tạo đơn hàng mới (trạng thái chờ thanh toán, giữ đơn 10 phút). |
 | `GET` | `/orders/{id}` | Lấy thông tin đơn hàng, các món và trạng thái thanh toán. |
 | `POST` | `/orders/{id}/pay` | Tạo giao dịch thanh toán, trả `paymentUrl` và hạn giữ đơn mới. |
+| `POST` | `/orders/{id}/demo-payment/confirm` | Xác nhận thanh toán giả lập trong app (không thu tiền thật). |
 | `POST` | `/orders/{id}/cancel` | Khách tự huỷ đơn khi chưa thanh toán. |
 | `PATCH` | `/orders/{id}/status` 🔒 | Cập nhật trạng thái đơn hàng. |
 | `GET` | `/pay/mock/{mã}` | Trang cổng thanh toán giả lập (không có tiền tố `/api`). |

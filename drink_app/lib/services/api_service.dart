@@ -148,9 +148,22 @@ class ApiService {
     return PaymentSession.fromJson(jsonDecode(utf8.decode(res.bodyBytes)));
   }
 
+  /// Xác nhận thanh toán giả lập cho bản demo; không thu tiền thật.
+  Future<void> confirmDemoPayment(int orderId) async {
+    final res = await http.post(
+      Uri.parse('$baseUrl/api/orders/$orderId/demo-payment/confirm'),
+    );
+    if (res.statusCode != 200) {
+      throw ApiException(
+        _errorMessage(res, 'Không xác nhận được thanh toán demo'),
+      );
+    }
+  }
+
   /// Khách tự huỷ đơn khi chưa thanh toán.
   Future<void> cancelOrder(int orderId) async {
-    final res = await http.post(Uri.parse('$baseUrl/api/orders/$orderId/cancel'));
+    final res =
+        await http.post(Uri.parse('$baseUrl/api/orders/$orderId/cancel'));
     if (res.statusCode != 200) {
       throw ApiException(_errorMessage(res, 'Không huỷ được đơn'));
     }
