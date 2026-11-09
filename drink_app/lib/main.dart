@@ -46,7 +46,7 @@ class _MainTabsState extends State<MainTabs> {
       body: IndexedStack(
         index: _index,
         children: [
-          const MenuScreen(),
+          MenuScreen(isActive: _index == 0),
           const CartScreen(),
           ValueListenableBuilder<TrackedOrder?>(
             valueListenable: OrderTracker.currentOrder,

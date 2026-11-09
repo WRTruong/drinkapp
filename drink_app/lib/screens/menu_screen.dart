@@ -8,7 +8,11 @@ import 'package:drink_app/screens/admin_screen.dart';
 import 'package:drink_app/screens/drink_detail_screen.dart';
 
 class MenuScreen extends StatefulWidget {
-  const MenuScreen({super.key});
+  /// Chỉ tab đang hiển thị mới tự làm mới định kỳ, tránh gọi API trùng khi
+  /// widget vẫn sống trong IndexedStack nhưng bị ẩn.
+  final bool isActive;
+
+  const MenuScreen({super.key, this.isActive = true});
   @override
   State<MenuScreen> createState() => _MenuScreenState();
 }
@@ -24,10 +28,27 @@ class _MenuScreenState extends State<MenuScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     ApiService.inventoryVersion.addListener(_onInventoryChanged);
     _future = _api.getDrinks();
+    if (widget.isActive) _startTimer();
+  }
+
+  void _startTimer() {
+    _refreshTimer?.cancel();
     _refreshTimer = Timer.periodic(
       const Duration(seconds: 15),
       (_) => _reload(),
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant MenuScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isActive == oldWidget.isActive) return;
+    if (widget.isActive) {
+      _reload();
+      _startTimer();
+    } else {
+      _refreshTimer?.cancel();
+    }
   }
 
   @override

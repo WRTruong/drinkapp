@@ -107,7 +107,7 @@ class ApiService {
   Future<OrderDetail> getOrder(int id) async {
     final res = await http.get(Uri.parse('$baseUrl/api/orders/$id'));
     if (res.statusCode != 200) throw Exception('Không tìm thấy đơn');
-    return OrderDetail.fromJson(jsonDecode(res.body));
+    return OrderDetail.fromJson(jsonDecode(utf8.decode(res.bodyBytes)));
   }
 
   Future<List<dynamic>> getAllOrders() async {

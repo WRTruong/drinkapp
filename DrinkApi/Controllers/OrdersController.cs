@@ -25,6 +25,7 @@ public class OrdersController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var orders = await _db.Orders
+            .Include(o => o.Items)
             .Where(o => o.Status != "Completed" && o.Status != "Cancelled")
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync();
