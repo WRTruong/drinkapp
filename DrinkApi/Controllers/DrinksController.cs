@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using DrinkApi.Auth;
 using DrinkApi.Data;
 
 namespace DrinkApi.Controllers;
@@ -15,6 +16,7 @@ public class DrinksController : ControllerBase
     public async Task<IActionResult> GetAll() =>
         Ok(await _db.Drinks.ToListAsync());
 
+    [AdminKey]
     [HttpPatch("{id}/toggle-stock")]
     public async Task<IActionResult> ToggleStock(int id)
     {

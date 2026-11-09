@@ -86,6 +86,15 @@ Thực hiện lần lượt theo 3 bước sau. Các lệnh Flutter cần chạy
    flutter run
    ```
 
+### 4. Phân quyền nhân viên
+
+Các API quản trị yêu cầu header `X-Admin-Key` khớp với giá trị `Admin:ApiKey` trong cấu hình backend.
+
+- Mã mặc định khi phát triển: `nhanvien123`, đặt trong `DrinkApi/appsettings.Development.json`.
+- `DrinkApi/appsettings.json` để trống `Admin:ApiKey`, nên khi triển khai phải cấu hình bằng biến môi trường `Admin__ApiKey=<mã mới>`.
+- Trong app: long-press tiêu đề **Menu đồ uống** để mở khu vực nhân viên và nhập mã. Mã chỉ giữ trong bộ nhớ của phiên chạy hiện tại, không lưu xuống thiết bị.
+- Thử trong Swagger: bấm **Authorize**, nhập mã, rồi gọi các API quản trị.
+
 ## 📡 Danh sách API
 
 Base URL mặc định: `http://localhost:5000` (khi gọi từ máy phát triển). Tất cả các endpoint bên dưới có tiền tố `/api`.
@@ -93,11 +102,13 @@ Base URL mặc định: `http://localhost:5000` (khi gọi từ máy phát tri�
 | Phương thức | Endpoint | Mô tả |
 |---|---|---|
 | `GET` | `/drinks` | Lấy toàn bộ đồ uống, bao gồm cả món hết hàng. |
-| `PATCH` | `/drinks/{id}/toggle-stock` | Đảo trạng thái còn hàng/hết hàng cho đồ uống. |
-| `GET` | `/orders` | Lấy các đơn chưa hoàn thành hoặc chưa bị huỷ, mới tạo trước. |
+| `PATCH` | `/drinks/{id}/toggle-stock` 🔒 | Đảo trạng thái còn hàng/hết hàng cho đồ uống. |
+| `GET` | `/orders` 🔒 | Lấy các đơn chưa hoàn thành hoặc chưa bị huỷ, mới tạo trước, kèm các món trong đơn. |
 | `POST` | `/orders` | Tạo đơn hàng mới. |
 | `GET` | `/orders/{id}` | Lấy thông tin đơn hàng và các món trong đơn. |
-| `PATCH` | `/orders/{id}/status` | Cập nhật trạng thái đơn hàng; chỉ hoạt động khi backend chạy ở môi trường Development. |
+| `PATCH` | `/orders/{id}/status` 🔒 | Cập nhật trạng thái đơn hàng. |
+
+🔒 = yêu cầu header `X-Admin-Key` (xem mục [Phân quyền nhân viên](#4-phân-quyền-nhân-viên)).
 
 ### Ví dụ tạo đơn hàng
 

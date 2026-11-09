@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using DrinkApi.Auth;
 using DrinkApi.Data;
 using DrinkApi.Dtos;
 using DrinkApi.Models;
@@ -11,9 +12,7 @@ namespace DrinkApi.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly AppDbContext _db;
-    private readonly IWebHostEnvironment _env;
-    public OrdersController(AppDbContext db, IWebHostEnvironment env)
-    { _db = db; _env = env; }
+    public OrdersController(AppDbContext db) => _db = db;
 
     // Mã đơn gồm thời điểm tạo tới giây và 4 ký tự ngẫu nhiên: hai đơn trong
     // cùng một giây vẫn có mã khác nhau, không vi phạm unique index OrderCode.
@@ -21,6 +20,7 @@ public class OrdersController : ControllerBase
         "ORD-" + DateTime.UtcNow.ToString("yyMMddHHmmss") +
         Guid.NewGuid().ToString("N")[..4].ToUpperInvariant();
 
+    [AdminKey]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -115,14 +115,10 @@ public class OrdersController : ControllerBase
         return Ok(order);
     }
 
+    [AdminKey]
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> UpdateStatus(int id, UpdateStatusDto dto)
     {
-        if (!_env.IsDevelopment())
-            return StatusCode(StatusCodes.Status403Forbidden, new
-            {
-                error = "Chỉ môi trường Development mới cho phép cập nhật trạng thái đơn."
-            });
         var allowed = new[] { "Pending", "Preparing", "Ready", "Completed", "Cancelled" };
         if (!allowed.Contains(dto.Status))
             return BadRequest(new { error = "Trạng thái không hợp lệ" });

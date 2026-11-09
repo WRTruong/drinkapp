@@ -89,17 +89,45 @@ class _MenuScreenState extends State<MenuScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _openAdmin() async {
+    final key = ApiService.adminKey ?? await _askAdminKey();
+    if (key == null || key.isEmpty) return;
+
+    ApiService.adminKey = key;
+    try {
+      // Xác thực mã với server trước khi mở màn hình nhân viên.
+      await _api.getAllOrders();
+    } on ApiException catch (e) {
+      ApiService.adminKey = null;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message)));
+      return;
+    } catch (_) {
+      // Lỗi mạng: vẫn mở, AdminScreen sẽ hiển thị lỗi tải danh sách.
+    }
+
+    if (!mounted) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => AdminScreen(onInventoryChanged: _reload),
+      ),
+    );
+    _reload();
+  }
+
+  Future<String?> _askAdminKey() => showDialog<String>(
+        context: context,
+        builder: (_) => const _AdminKeyDialog(),
+      );
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: GestureDetector(
-          onLongPress: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AdminScreen(onInventoryChanged: _reload),
-            ),
-          ).then((_) => _reload()),
+          onLongPress: _openAdmin,
           child: const Text('Menu đồ uống'),
         ),
         actions: [
@@ -244,6 +272,46 @@ class _MenuScreenState extends State<MenuScreen> with WidgetsBindingObserver {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AdminKeyDialog extends StatefulWidget {
+  const _AdminKeyDialog();
+
+  @override
+  State<_AdminKeyDialog> createState() => _AdminKeyDialogState();
+}
+
+class _AdminKeyDialogState extends State<_AdminKeyDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() => Navigator.pop(context, _controller.text.trim());
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Khu vực nhân viên'),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        obscureText: true,
+        decoration: const InputDecoration(labelText: 'Mã nhân viên'),
+        onSubmitted: (_) => _submit(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Huỷ'),
+        ),
+        FilledButton(onPressed: _submit, child: const Text('Vào')),
+      ],
     );
   }
 }

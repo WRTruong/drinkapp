@@ -6,7 +6,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://0.0.0.0:5000");
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    // Cho phép nhập mã nhân viên trong nút Authorize của Swagger để thử API quản trị.
+    c.AddSecurityDefinition("AdminKey", new Microsoft.OpenApi.OpenApiSecurityScheme
+    {
+        Name = DrinkApi.Auth.AdminKeyAttribute.HeaderName,
+        In = Microsoft.OpenApi.ParameterLocation.Header,
+        Type = Microsoft.OpenApi.SecuritySchemeType.ApiKey,
+        Description = "Mã nhân viên (Admin:ApiKey) cho các API quản trị."
+    });
+
+    // Chỉ đánh dấu yêu cầu bảo mật cho các action có [AdminKey].
+    c.OperationFilter<DrinkApi.Auth.AdminKeyOperationFilter>();
+});
 
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));

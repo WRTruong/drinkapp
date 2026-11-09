@@ -31,6 +31,17 @@ class ApiService {
   );
   static final ValueNotifier<int> inventoryVersion = ValueNotifier<int>(0);
 
+  /// Mã nhân viên cho các API quản trị. Chỉ giữ trong bộ nhớ của phiên chạy
+  /// hiện tại, không lưu xuống thiết bị.
+  static String? adminKey;
+
+  static Map<String, String> get _adminHeaders {
+    final key = adminKey;
+    return {
+      if (key != null && key.isNotEmpty) 'X-Admin-Key': key,
+    };
+  }
+
   String _errorMessage(http.Response response, String fallback) {
     final body = utf8.decode(response.bodyBytes);
     try {
@@ -58,9 +69,10 @@ class ApiService {
   Future<void> toggleDrinkStock(int drinkId) async {
     final res = await http.patch(
       Uri.parse('$baseUrl/api/drinks/$drinkId/toggle-stock'),
+      headers: _adminHeaders,
     );
     if (res.statusCode != 200) {
-      throw Exception('Lỗi cập nhật kho (HTTP ${res.statusCode})');
+      throw ApiException(_errorMessage(res, 'Lỗi cập nhật kho'));
     }
     inventoryVersion.value++;
   }
@@ -111,9 +123,12 @@ class ApiService {
   }
 
   Future<List<dynamic>> getAllOrders() async {
-    final res = await http.get(Uri.parse('$baseUrl/api/orders'));
+    final res = await http.get(
+      Uri.parse('$baseUrl/api/orders'),
+      headers: _adminHeaders,
+    );
     if (res.statusCode != 200) {
-      throw Exception('Lỗi tải danh sách đơn');
+      throw ApiException(_errorMessage(res, 'Lỗi tải danh sách đơn'));
     }
     return jsonDecode(utf8.decode(res.bodyBytes)) as List<dynamic>;
   }
@@ -121,11 +136,11 @@ class ApiService {
   Future<void> updateOrderStatus(int orderId, String newStatus) async {
     final res = await http.patch(
       Uri.parse('$baseUrl/api/orders/$orderId/status'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', ..._adminHeaders},
       body: jsonEncode({'status': newStatus}),
     );
     if (res.statusCode != 200) {
-      throw Exception('Cập nhật thất bại');
+      throw ApiException(_errorMessage(res, 'Cập nhật thất bại'));
     }
   }
 }
