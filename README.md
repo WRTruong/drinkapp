@@ -17,7 +17,7 @@
 ## ✨ Tính năng chính
 
 - Xem danh sách đồ uống còn phục vụ, giá và mô tả.
-- Tuỳ chỉnh size, lượng đường, lượng đá và số lượng.
+- Tuỳ chỉnh size, lượng đường, lượng đá và số lượng. Giá size S bằng giá gốc; M cộng 5.000đ và L cộng 10.000đ.
 - Thêm món vào giỏ hàng, cập nhật số lượng hoặc xoá món.
 - Tạo đơn hàng với tên người nhận, số điện thoại và ghi chú.
 - Thanh toán trước qua cổng thanh toán; đơn chưa trả tiền trong 10 phút sẽ tự huỷ để tránh đơn ảo.

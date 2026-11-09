@@ -107,19 +107,30 @@ public class OrdersController : ControllerBase
                     item.SugarLevel is { Length: > 10 } ||
                     item.IceLevel is { Length: > 10 })
                     return BadRequest(new { error = "Tuỳ chỉnh size/đường/đá không hợp lệ" });
+                var size = string.IsNullOrWhiteSpace(item.Size)
+                    ? "S"
+                    : item.Size.Trim().ToUpperInvariant();
+                if (size is not ("S" or "M" or "L"))
+                    return BadRequest(new { error = "Size phải là S, M hoặc L" });
                 if (item.Quantity <= 0)
                     return BadRequest(new { error = "Số lượng phải > 0" });
 
+                var unitPrice = drink.Price + (size switch
+                {
+                    "M" => 5_000m,
+                    "L" => 10_000m,
+                    _ => 0m
+                });
                 var line = new OrderItem
                 {
                     DrinkId = drink.Id,
                     DrinkNameSnapshot = drink.Name,
-                    UnitPrice = drink.Price,
+                    UnitPrice = unitPrice,
                     Quantity = item.Quantity,
-                    Size = item.Size,
+                    Size = size,
                     SugarLevel = item.SugarLevel,
                     IceLevel = item.IceLevel,
-                    LineTotal = drink.Price * item.Quantity
+                    LineTotal = unitPrice * item.Quantity
                 };
                 order.Items.Add(line);
                 order.TotalAmount += line.LineTotal;

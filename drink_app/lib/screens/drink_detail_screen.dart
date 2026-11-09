@@ -21,7 +21,8 @@ class _DrinkDetailScreenState extends State<DrinkDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final d = widget.drink;
-    final totalPreview = d.price * _qty;
+    final unitPrice = d.priceForSize(_size);
+    final totalPreview = unitPrice * _qty;
 
     return Scaffold(
       appBar: AppBar(title: Text(d.name)),
@@ -60,7 +61,7 @@ class _DrinkDetailScreenState extends State<DrinkDetailScreen> {
                   style: TextStyle(color: Colors.grey[700])),
             ),
           const SizedBox(height: 8),
-          Text('${d.price.toStringAsFixed(0)} đ',
+          Text('${unitPrice.toStringAsFixed(0)} đ',
               style: const TextStyle(
                   fontSize: 20, color: Colors.brown, fontWeight: FontWeight.bold)),
           const SizedBox(height: 20),

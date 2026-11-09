@@ -14,6 +14,12 @@ class Drink {
       this.imageUrl,
       this.isAvailable = true});
 
+  double priceForSize(String size) => price + switch (size) {
+        'M' => 5000,
+        'L' => 10000,
+        _ => 0,
+      };
+
   factory Drink.fromJson(Map<String, dynamic> j) => Drink(
         id: j['id'],
         name: j['name'],

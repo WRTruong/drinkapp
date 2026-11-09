@@ -245,7 +245,7 @@ class _MenuScreenState extends State<MenuScreen> with WidgetsBindingObserver {
                             ],
                           ),
                           subtitle: Text(
-                            '${d.price.toStringAsFixed(0)} đ',
+                            'Từ ${d.price.toStringAsFixed(0)} đ',
                             style: TextStyle(
                               color: d.isAvailable
                                   ? Colors.brown

@@ -51,7 +51,7 @@ class _CartScreenState extends State<CartScreen> {
                     title: Text(it.drink.name),
                     subtitle: Text(
                       '${it.size} • ${it.sugar} đường • ${it.ice} đá\n'
-                      '${it.drink.price.toStringAsFixed(0)} đ × ${it.quantity}',
+                      '${it.unitPrice.toStringAsFixed(0)} đ × ${it.quantity}',
                     ),
                     isThreeLine: true,
                     trailing: Column(
