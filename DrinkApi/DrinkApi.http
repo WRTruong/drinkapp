@@ -1,6 +1,44 @@
-@DrinkApi_HostAddress = http://localhost:5289
+@host = http://localhost:5000
+@adminKey = nhanvien123
 
-GET {{DrinkApi_HostAddress}}/weatherforecast/
-Accept: application/json
+### Danh sách đồ uống (công khai)
+GET {{host}}/api/drinks
 
-###
+### Tạo đơn hàng mới (công khai)
+POST {{host}}/api/orders
+Content-Type: application/json
+
+{
+  "customerName": "Nguyễn Văn A",
+  "phone": "0900000000",
+  "note": "Ít ngọt",
+  "items": [
+    {
+      "drinkId": 1,
+      "quantity": 2,
+      "size": "M",
+      "sugarLevel": "50%",
+      "iceLevel": "100%"
+    }
+  ]
+}
+
+### Theo dõi đơn hàng (công khai) - thay 1 bằng id trả về ở request trên
+GET {{host}}/api/orders/1
+
+### [Nhân viên] Danh sách đơn đang xử lý - cần mã nhân viên
+GET {{host}}/api/orders
+X-Admin-Key: {{adminKey}}
+
+### [Nhân viên] Cập nhật trạng thái đơn
+PATCH {{host}}/api/orders/1/status
+Content-Type: application/json
+X-Admin-Key: {{adminKey}}
+
+{
+  "status": "Preparing"
+}
+
+### [Nhân viên] Bật/tắt trạng thái còn hàng
+PATCH {{host}}/api/drinks/1/toggle-stock
+X-Admin-Key: {{adminKey}}

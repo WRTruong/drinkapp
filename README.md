@@ -45,7 +45,7 @@ Thực hiện lần lượt theo 3 bước sau. Các lệnh Flutter cần chạy
 ### 1. Database
 
 1. Khởi động SQL Server.
-2. Mở file [`drinkDb.sql`](drinkDb.sql) bằng SSMS và thực thi toàn bộ script. Script tạo database `DrinkDb`, các bảng `Drinks`, `Orders`, `OrderItems` và một số dữ liệu đồ uống mẫu.
+2. Mở file [`drinkDb.sql`](drinkDb.sql) bằng SSMS và thực thi toàn bộ script. Script tạo database `DrinkDb`, các bảng `Drinks`, `Orders`, `OrderItems` và một số dữ liệu đồ uống mẫu. Script **chạy lại nhiều lần vẫn an toàn**: chỉ tạo database/bảng khi chưa có, chỉ thêm món mẫu còn thiếu và không xoá dữ liệu đang có. File được lưu ở UTF-8 (có BOM) — giữ nguyên bảng mã này khi mở/sửa để tiếng Việt không bị lỗi.
 3. Trong bước Backend, cập nhật chuỗi kết nối để trỏ tới đúng SQL Server instance trên máy của bạn.
 
 ### 2. Backend

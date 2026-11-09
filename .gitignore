@@ -1,0 +1,24 @@
+# --- .NET / ASP.NET Core ---
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+TestResults/
+*.coverage
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
+
+# --- Hệ điều hành ---
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# --- Log & file tạm ---
+*.log
+*.tmp
