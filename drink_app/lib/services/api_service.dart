@@ -126,6 +126,36 @@ class ApiService {
     return OrderResult.fromJson(jsonDecode(utf8.decode(res.bodyBytes)));
   }
 
+  /// Tạo giao dịch thanh toán cho đơn vừa đặt. Server trả URL cổng thanh toán
+  /// và hạn giữ đơn; hết hạn thì đơn tự huỷ.
+  Future<PaymentSession> createPayment(int orderId) async {
+    final res = await http.post(Uri.parse('$baseUrl/api/orders/$orderId/pay'));
+    if (res.statusCode != 200) {
+      var message = 'Không tạo được giao dịch thanh toán';
+      String? code;
+      try {
+        final decoded = jsonDecode(utf8.decode(res.bodyBytes));
+        if (decoded is Map<String, dynamic>) {
+          code = decoded['code'] as String?;
+          final error = decoded['error'];
+          if (error is String && error.isNotEmpty) message = error;
+        }
+      } on FormatException {
+        // Giữ thông báo mặc định khi body không phải JSON.
+      }
+      throw ApiException(message, code: code);
+    }
+    return PaymentSession.fromJson(jsonDecode(utf8.decode(res.bodyBytes)));
+  }
+
+  /// Khách tự huỷ đơn khi chưa thanh toán.
+  Future<void> cancelOrder(int orderId) async {
+    final res = await http.post(Uri.parse('$baseUrl/api/orders/$orderId/cancel'));
+    if (res.statusCode != 200) {
+      throw ApiException(_errorMessage(res, 'Không huỷ được đơn'));
+    }
+  }
+
   Future<OrderDetail> getOrder(int id) async {
     final res = await http.get(Uri.parse('$baseUrl/api/orders/$id'));
     if (res.statusCode != 200) throw Exception('Không tìm thấy đơn');

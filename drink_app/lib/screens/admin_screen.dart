@@ -109,7 +109,14 @@ class _AdminScreenState extends State<AdminScreen> {
           final orders = snap.data ?? [];
           if (orders.isEmpty) {
             return const Center(
-              child: Text('Không có đơn hàng nào đang chờ.'),
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text(
+                  'Không có đơn nào đã thanh toán đang chờ pha chế.\n'
+                  'Đơn khách chưa trả tiền không hiện ở đây.',
+                  textAlign: TextAlign.center,
+                ),
+              ),
             );
           }
 
@@ -151,7 +158,7 @@ class _AdminScreenState extends State<AdminScreen> {
             Text('Khách: $customerName • $phone'),
             const SizedBox(height: 2),
             Text(
-              'Trạng thái: ${_statusLabel(status)}',
+              'Trạng thái: ${_statusLabel(status)} · Đã thu tiền',
               style: TextStyle(
                 color: _statusColor(status),
                 fontWeight: FontWeight.w600,

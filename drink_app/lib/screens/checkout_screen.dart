@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:drink_app/services/api_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:drink_app/widgets/cart_store.dart';
-import 'package:drink_app/widgets/order_tracker.dart';
+import 'package:drink_app/services/order_history_store.dart';
+import 'package:drink_app/screens/order_status_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
   const CheckoutScreen({super.key});
@@ -53,12 +55,53 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         items: items,
       );
 
+      final itemCount = CartStore.items.fold<int>(0, (sum, e) => sum + e.quantity);
       CartStore.clear();
+
+      // Lưu vào lịch sử trên máy để khách xem lại đơn mà không cần đăng nhập.
+      await OrderHistoryStore.add(SavedOrder(
+        id: res.id,
+        orderCode: res.orderCode,
+        totalAmount: res.totalAmount,
+        status: res.status,
+        paymentStatus: res.paymentStatus,
+        expiresAt: res.paymentExpiresAt,
+        itemCount: itemCount,
+        createdAt: DateTime.now(),
+      ));
+
+      // Đơn chỉ vào hàng chờ sau khi trả tiền, nên mở cổng thanh toán ngay.
+      String? paymentError;
+      try {
+        final session = await _api.createPayment(res.id);
+        final opened = await launchUrl(
+          Uri.parse(session.paymentUrl),
+          mode: LaunchMode.externalApplication,
+        );
+        if (!opened) {
+          paymentError = 'Không mở được trình duyệt thanh toán';
+        }
+      } on ApiException catch (e) {
+        paymentError = e.message;
+      } catch (e) {
+        paymentError = '$e';
+      }
+
       EasyLoading.dismiss();
       if (!mounted) return;
-      OrderTracker.setOrder(res.id, res.orderCode);
       Navigator.popUntil(context, (route) => route.isFirst);
-      EasyLoading.showSuccess('Đặt hàng thành công!');
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OrderStatusScreen(
+            orderId: res.id,
+            orderCode: res.orderCode,
+          ),
+        ),
+      );
+      if (paymentError != null) {
+        EasyLoading.showError('Chưa mở được thanh toán: $paymentError');
+      }
     } on ApiException catch (e) {
       EasyLoading.dismiss();
       if (e.isOutOfStock) {
@@ -205,7 +248,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.lock_clock, size: 18, color: Colors.brown.shade400),
+              const SizedBox(width: 8),
+              const Expanded(
+                child: Text(
+                  'Đơn được giữ 10 phút. Sau khi thanh toán thành công, đơn mới '
+                  'vào hàng chờ pha chế của quán; quá hạn chưa trả tiền thì đơn '
+                  'tự huỷ.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -213,7 +272,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14),
               ),
-              child: const Text('Xác nhận đặt hàng'),
+              child: const Text('Đặt hàng và thanh toán'),
             ),
           ),
         ],

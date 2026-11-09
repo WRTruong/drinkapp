@@ -9,6 +9,14 @@ public class Order
     public decimal TotalAmount { get; set; }
     public string Status { get; set; } = "Pending";
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // Thanh toán trước khi đơn vào hàng chờ pha chế: quán chỉ nhận đơn đã
+    // thanh toán, đơn chưa trả tiền quá hạn sẽ tự huỷ.
+    public string PaymentMethod { get; set; } = "Online";
+    public string PaymentStatus { get; set; } = "Unpaid";
+    public string? PaymentRef { get; set; }
+    public DateTime? PaymentExpiresAt { get; set; }
+    public DateTime? PaidAt { get; set; }
     public List<OrderItem> Items { get; set; } = new();
 }
 

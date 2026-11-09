@@ -34,9 +34,37 @@ BEGIN
         Note NVARCHAR(255),
         TotalAmount DECIMAL(18,2) NOT NULL,
         Status NVARCHAR(20) NOT NULL DEFAULT 'Pending',
-        CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
+        CreatedAt DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME(),
+        PaymentMethod NVARCHAR(20) NOT NULL DEFAULT 'Online',
+        PaymentStatus NVARCHAR(20) NOT NULL DEFAULT 'Unpaid',
+        PaymentRef NVARCHAR(50),
+        PaymentExpiresAt DATETIME2,
+        PaidAt DATETIME2
     );
 END
+GO
+
+-- Bổ sung cột thanh toán cho database đã tạo từ phiên bản trước.
+IF COL_LENGTH('dbo.Orders', 'PaymentStatus') IS NULL
+BEGIN
+    ALTER TABLE dbo.Orders ADD
+        PaymentMethod NVARCHAR(20) NOT NULL
+            CONSTRAINT DF_Orders_PaymentMethod DEFAULT 'Online',
+        PaymentStatus NVARCHAR(20) NOT NULL
+            CONSTRAINT DF_Orders_PaymentStatus DEFAULT 'Unpaid',
+        PaymentRef NVARCHAR(50),
+        PaymentExpiresAt DATETIME2,
+        PaidAt DATETIME2;
+
+    -- Đơn có sẵn trước khi có thanh toán online được coi như đã thu tiền tại quầy.
+    -- Dùng EXEC để SQL Server biên dịch sau khi cột vừa được thêm trong cùng batch.
+    EXEC(N'UPDATE dbo.Orders SET PaymentStatus = ''Paid'', PaidAt = CreatedAt;');
+END
+GO
+
+IF NOT EXISTS (SELECT 1 FROM sys.indexes
+    WHERE name = 'IX_Orders_PaymentStatus' AND object_id = OBJECT_ID(N'dbo.Orders'))
+    CREATE INDEX IX_Orders_PaymentStatus ON dbo.Orders (PaymentStatus, CreatedAt);
 GO
 
 IF OBJECT_ID(N'dbo.OrderItems', N'U') IS NULL

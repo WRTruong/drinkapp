@@ -4,12 +4,14 @@ import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:drink_app/services/notification_service.dart';
 import 'package:drink_app/screens/menu_screen.dart';
 import 'package:drink_app/screens/cart_screen.dart';
-import 'package:drink_app/screens/order_status_screen.dart';
-import 'package:drink_app/widgets/order_tracker.dart';
+import 'package:drink_app/screens/my_orders_screen.dart';
+import 'package:drink_app/services/order_history_store.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await NotificationService().init();
+  // Nạp lịch sử đơn đã lưu trên máy trước khi mở tab "Đơn".
+  await OrderHistoryStore.load();
   runApp(const MyApp());
 }
 
@@ -48,17 +50,7 @@ class _MainTabsState extends State<MainTabs> {
         children: [
           MenuScreen(isActive: _index == 0),
           const CartScreen(),
-          ValueListenableBuilder<TrackedOrder?>(
-            valueListenable: OrderTracker.currentOrder,
-            builder: (context, order, _) {
-              if (order == null) return const _EmptyOrderScreen();
-              return OrderStatusScreen(
-                key: ValueKey(order.id),
-                orderId: order.id,
-                orderCode: order.code,
-              );
-            },
-          ),
+          const MyOrdersScreen(),
         ],
       ),
       bottomNavigationBar: ConvexAppBar(
@@ -76,21 +68,4 @@ class _MainTabsState extends State<MainTabs> {
       ),
     );
   }
-}
-
-class _EmptyOrderScreen extends StatelessWidget {
-  const _EmptyOrderScreen();
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Đơn hàng')),
-        body: const Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Chưa có đơn hàng nào.\nĐặt món ở tab Menu để xem trạng thái tại đây.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      );
 }
