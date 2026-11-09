@@ -31,6 +31,16 @@ class ApiService {
   );
   static final ValueNotifier<int> inventoryVersion = ValueNotifier<int>(0);
 
+  /// Ảnh mẫu được API phục vụ dưới dạng đường dẫn tương đối (/images/...).
+  /// Ghép với [baseUrl] để tải từ đúng máy chủ; link http(s) đầy đủ giữ nguyên.
+  static String resolveImageUrl(String? value) {
+    if (value == null || value.isEmpty) return '';
+    if (value.startsWith('http://') || value.startsWith('https://')) {
+      return value;
+    }
+    return value.startsWith('/') ? '$baseUrl$value' : '$baseUrl/$value';
+  }
+
   /// Mã nhân viên cho các API quản trị. Chỉ giữ trong bộ nhớ của phiên chạy
   /// hiện tại, không lưu xuống thiết bị.
   static String? adminKey;

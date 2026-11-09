@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:drink_app/models/drink.dart';
 import 'package:drink_app/models/cart_item.dart';
+import 'package:drink_app/services/api_service.dart';
 import 'package:drink_app/widgets/cart_store.dart';
 
 class DrinkDetailScreen extends StatefulWidget {
@@ -30,10 +31,18 @@ class _DrinkDetailScreenState extends State<DrinkDetailScreen> {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              d.imageUrl ?? '',
+              ApiService.resolveImageUrl(d.imageUrl),
               height: 200,
               width: double.infinity,
               fit: BoxFit.cover,
+              loadingBuilder: (_, child, progress) {
+                if (progress == null) return child;
+                return Container(
+                  height: 200,
+                  color: Colors.brown.shade50,
+                  child: const Center(child: CircularProgressIndicator()),
+                );
+              },
               errorBuilder: (_, __, ___) => Container(
                 height: 200,
                 color: Colors.brown.shade100,

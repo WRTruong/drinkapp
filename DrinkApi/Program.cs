@@ -38,5 +38,9 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseCors();
+
+// Ảnh món mẫu nằm trong wwwroot/images, phục vụ tại /images/...
+app.UseStaticFiles();
+
 app.MapControllers();
 app.Run();

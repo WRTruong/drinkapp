@@ -56,22 +56,43 @@ BEGIN
 END
 GO
 
--- Chỉ thêm món mẫu chưa có (so khớp theo tên) nên chạy lại không bị nhân đôi.
+-- Dữ liệu mẫu. Ảnh món lưu trong DrinkApi/wwwroot/images (nguồn: Wikimedia Commons, CC)
+-- và API phục vụ tại /images/<tên>.jpg nên app không phụ thuộc mạng ngoài.
+DECLARE @SeedDrinks TABLE (
+    Name NVARCHAR(100) NOT NULL,
+    Description NVARCHAR(255) NULL,
+    Price DECIMAL(18,2) NOT NULL,
+    ImageUrl NVARCHAR(255) NULL,
+    IsAvailable BIT NOT NULL
+);
+
+INSERT INTO @SeedDrinks (Name, Description, Price, ImageUrl, IsAvailable) VALUES
+    (N'Cà phê đen', N'Cà phê phin truyền thống', 25000, '/images/ca-phe-den.jpg', 1),
+    (N'Cà phê sữa', N'Cà phê sữa đá', 30000, '/images/ca-phe-sua.jpg', 1),
+    (N'Trà sữa trân châu', N'Trà sữa trân châu đường đen', 45000, '/images/tra-sua-tran-chau.jpg', 1),
+    (N'Trà đào cam sả', N'Trà đào tươi mát', 40000, '/images/tra-dao-cam-sa.jpg', 1),
+    (N'Matcha latte', N'Matcha Nhật Bản', 50000, '/images/matcha-latte.jpg', 1),
+    (N'Bạc xỉu', N'Bạc xỉu đá', 30000, '/images/bac-xiu.jpg', 1),
+    (N'Sinh tố xoài', N'Sinh tố xoài tươi', 45000, '/images/sinh-to-xoai.jpg', 1),
+    (N'Nước cam', N'Cam vắt nguyên chất', 35000, '/images/nuoc-cam.jpg', 1),
+    (N'Trà xanh', N'Trà xanh Thái Nguyên', 20000, '/images/tra-xanh.jpg', 1),
+    (N'Sữa chua đá', N'Sữa chua pha đá', 25000, '/images/sua-chua-da.jpg', 1);
+
+-- Chỉ thêm món mẫu còn thiếu (so khớp theo tên) nên chạy lại không bị nhân đôi.
 INSERT INTO Drinks (Name, Description, Price, ImageUrl, IsAvailable)
-SELECT v.Name, v.Description, v.Price, v.ImageUrl, v.IsAvailable
-FROM (VALUES
-    (N'Cà phê đen', N'Cà phê phin truyền thống', CAST(25000 AS DECIMAL(18,2)), 'https://i.imgur.com/1.jpg', CAST(1 AS BIT)),
-    (N'Cà phê sữa', N'Cà phê sữa đá', CAST(30000 AS DECIMAL(18,2)), 'https://i.imgur.com/2.jpg', CAST(1 AS BIT)),
-    (N'Trà sữa trân châu', N'Trà sữa trân châu đường đen', CAST(45000 AS DECIMAL(18,2)), 'https://i.imgur.com/3.jpg', CAST(1 AS BIT)),
-    (N'Trà đào cam sả', N'Trà đào tươi mát', CAST(40000 AS DECIMAL(18,2)), 'https://i.imgur.com/4.jpg', CAST(1 AS BIT)),
-    (N'Matcha latte', N'Matcha Nhật Bản', CAST(50000 AS DECIMAL(18,2)), 'https://i.imgur.com/5.jpg', CAST(1 AS BIT)),
-    (N'Bạc xỉu', N'Bạc xỉu đá', CAST(30000 AS DECIMAL(18,2)), 'https://i.imgur.com/6.jpg', CAST(1 AS BIT)),
-    (N'Sinh tố xoài', N'Sinh tố xoài tươi', CAST(45000 AS DECIMAL(18,2)), 'https://i.imgur.com/7.jpg', CAST(1 AS BIT)),
-    (N'Nước cam', N'Cam vắt nguyên chất', CAST(35000 AS DECIMAL(18,2)), 'https://i.imgur.com/8.jpg', CAST(1 AS BIT)),
-    (N'Trà xanh', N'Trà xanh Thái Nguyên', CAST(20000 AS DECIMAL(18,2)), 'https://i.imgur.com/9.jpg', CAST(1 AS BIT)),
-    (N'Sữa chua đá', N'Sữa chua pha đá', CAST(25000 AS DECIMAL(18,2)), 'https://i.imgur.com/10.jpg', CAST(1 AS BIT))
-) AS v(Name, Description, Price, ImageUrl, IsAvailable)
-WHERE NOT EXISTS (SELECT 1 FROM Drinks d WHERE d.Name = v.Name);
+SELECT s.Name, s.Description, s.Price, s.ImageUrl, s.IsAvailable
+FROM @SeedDrinks s
+WHERE NOT EXISTS (SELECT 1 FROM Drinks d WHERE d.Name = s.Name);
+
+-- Với database đã tạo trước đây, thay link ảnh imgur (giả) và link ảnh ngoài
+-- bằng ảnh nội bộ; ảnh do người dùng tự nhập thì giữ nguyên.
+UPDATE d
+SET d.ImageUrl = s.ImageUrl
+FROM Drinks d
+JOIN @SeedDrinks s ON s.Name = d.Name
+WHERE d.ImageUrl IS NULL
+   OR d.ImageUrl LIKE 'https://i.imgur.com/%'
+   OR d.ImageUrl LIKE 'https://upload.wikimedia.org/%';
 GO
 
 -- Kiểm tra nhanh sau khi chạy.

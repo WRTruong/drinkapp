@@ -180,10 +180,27 @@ class _MenuScreenState extends State<MenuScreen> with WidgetsBindingObserver {
                             child: Opacity(
                               opacity: d.isAvailable ? 1 : 0.4,
                               child: Image.network(
-                                d.imageUrl ?? '',
+                                ApiService.resolveImageUrl(d.imageUrl),
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
+                                loadingBuilder: (_, child, progress) {
+                                  if (progress == null) return child;
+                                  return Container(
+                                    width: 60,
+                                    height: 60,
+                                    color: Colors.brown.shade50,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
                                 errorBuilder: (_, __, ___) => Container(
                                   width: 60,
                                   height: 60,

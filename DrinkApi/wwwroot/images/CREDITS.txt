@@ -1,0 +1,14 @@
+Ảnh món mẫu - nguồn Wikimedia Commons (giấy phép tự do, xem trang File: tương ứng để biết tác giả và giấy phép cụ thể).
+
+ca-phe-den.jpg        https://commons.wikimedia.org/wiki/File:A_small_cup_of_coffee.JPG
+ca-phe-sua.jpg        https://commons.wikimedia.org/wiki/File:Ca_Phe_Sua_Da.jpg
+tra-sua-tran-chau.jpg https://commons.wikimedia.org/wiki/File:Classic_bubble_tea.jpg
+tra-dao-cam-sa.jpg    https://commons.wikimedia.org/wiki/File:Peach_iced_tea_with_orange_slices.jpg
+matcha-latte.jpg      https://commons.wikimedia.org/wiki/File:Matcha_latte_in_tall_glass.jpg
+bac-xiu.jpg           https://commons.wikimedia.org/wiki/File:Coffee_with_milk_(563800).jpg
+sinh-to-xoai.jpg      https://commons.wikimedia.org/wiki/File:Fresh-mango-smoothie_01.jpg
+nuoc-cam.jpg          https://commons.wikimedia.org/wiki/File:Orange_juice_1_edit1.jpg
+tra-xanh.jpg          https://commons.wikimedia.org/wiki/File:Ly_tr%C3%A0_%C4%91%C3%A1_SG,_ng30th3n2022.jpg
+sua-chua-da.jpg       https://commons.wikimedia.org/wiki/File:Plain_Lassi_in_a_glass.jpg
+
+Mỗi ảnh được tải về ở dạng thumbnail rộng 500px.
